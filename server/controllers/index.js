@@ -2,7 +2,8 @@
 const models = require('../models');
 
 // get the Cat model
-const { Cat } = models;
+const Cat = models.Cat;
+const Dog = models.Dog;
 
 // Function to handle rendering the index page.
 const hostIndex = async (req, res) => {
@@ -283,6 +284,50 @@ const notFound = (req, res) => {
   });
 };
 
+const createDog = async (req, res) => {
+  if(!req.body.name || !req.body.breed || !req.body.age){
+    return res.status(400).json({error: 'Missing parameters for name, breed or age. Insert all values.'})
+  }  
+  const dogData = {
+    name: req.body.name,
+    breed: req.body.breed,
+    age: req.body.age,
+  }
+  const newDog = new Dog(dogData);
+  try{
+    await newDog.save();
+    return res.status(201).json({
+      name: newDog.name,
+      breed: newDog.breed,
+      age: newDog.age,
+    })
+  }catch(err){
+    console.log(err);
+    return res.status(500).json({ error: 'failed to create dog' });
+  }
+}
+
+const searchDog = async(req, res) => {
+  if (!req.query.name) {
+    return res.status(400).json({ error: 'Name is required to perform a search' });
+  }
+  let doc;
+  try {
+    doc = await Dog.findOneAndUpdate({ name: req.query.name }, {$inc: {'age':1}}, {
+      returnDocument: 'after',
+      sort: {'createdDate': 'descending'},
+    }).lean().exec();
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'Something went wrong' });
+  }
+  if (!doc) {
+    return res.status(404).json({ error: 'No dogs found' });
+  }
+  return res.json({ name: doc.name, breed: doc.breed, age: doc.age });
+}
+
 // export the relevant public controller functions
 module.exports = {
   index: hostIndex,
@@ -294,4 +339,6 @@ module.exports = {
   updateLast,
   searchName,
   notFound,
+  createDog,
+  searchDog,
 };
