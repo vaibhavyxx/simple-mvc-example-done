@@ -30,7 +30,6 @@ const hostIndex = async (req, res) => {
     }
   } catch (err) {
     //Just log out the error for our records.
-    console.log(err);
   }
 
   /* res.render will render the given view from the views folder. In this case, index.
@@ -86,7 +85,6 @@ const hostPage1 = async (req, res) => {
        do not want people to see actual error messages from your server or database, or else
        they can exploit them to attack your server.
     */
-    console.log(err);
     return res.status(500).json({ error: 'failed to find cats' });
   }
 };
@@ -99,6 +97,10 @@ const hostPage2 = (req, res) => {
 // Function to render the untemplated page3.
 const hostPage3 = (req, res) => {
   res.render('page3');
+};
+
+const hostPage4 = (req, res) => {
+  res.render('page4');
 };
 
 // Get name will return the name of the last added cat.
@@ -122,7 +124,15 @@ const getName = async (req, res) => {
     /* If an error occurs, it means something went wrong with the database. We will
        give the user a 500 internal server error status code and an error message.
     */
-    console.log(err);
+    return res.status(500).json({error: 'Something went wrong contacting the database'});
+  }
+}
+
+const getDogs = async(req, res) => {
+   try{
+    const dogs = await Dog.find({}).lean().exec();
+    return res.render('page4', { title: 'Dogs', dogs }); 
+  }catch(err){
     return res.status(500).json({error: 'Something went wrong contacting the database'});
   }
 }
@@ -181,7 +191,6 @@ const setName = async (req, res) => {
        function, not just the catch statement. That means we can treat the code below the catch
        as being our "if the try worked"
     */
-    console.log(err);
     return res.status(500).json({ error: 'failed to create cat' });
   }
 };
@@ -220,7 +229,6 @@ const searchName = async (req, res) => {
     doc = await Cat.findOne({ name: req.query.name }).exec();
   } catch (err) {
     // If there is an error, log it and send the user an error message.
-    console.log(err);
     return res.status(500).json({ error: 'Something went wrong' });
   }
 
@@ -272,7 +280,6 @@ const updateLast = (req, res) => {
 
   // If something goes wrong saving to the database, log the error and send a message to the client.
   updatePromise.catch((err) => {
-    console.log(err);
     return res.status(500).json({ error: 'Something went wrong' });
   });
 };
@@ -302,7 +309,6 @@ const createDog = async (req, res) => {
       age: newDog.age,
     })
   }catch(err){
-    console.log(err);
     return res.status(500).json({ error: 'failed to create dog' });
   }
 }
@@ -319,7 +325,6 @@ const searchDog = async(req, res) => {
     }).lean().exec();
 
   } catch (err) {
-    console.log(err);
     return res.status(500).json({ error: 'Something went wrong' });
   }
   if (!doc) {
@@ -334,7 +339,9 @@ module.exports = {
   page1: hostPage1,
   page2: hostPage2,
   page3: hostPage3,
+  page4: hostPage4,
   getName,
+  getDogs,
   setName,
   updateLast,
   searchName,
